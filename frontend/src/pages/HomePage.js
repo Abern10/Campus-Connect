@@ -7,46 +7,40 @@ import WhatWeDoImage from "../assets/WhatWeDoImage.jpg";
 import FeaturesImage from "../assets/FeaturesImage.jpg";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faChevronRight } from "@fortawesome/free-solid-svg-icons";
-import { SignedIn, SignedOut, SignInButton } from "@clerk/clerk-react";
+import { SignedIn, SignedOut, useAuth, SignInButton } from "@clerk/clerk-react";
 import { useNavigate } from "react-router-dom";
 
 function HomePage() {
   const navigate = useNavigate();
+  const { isLoaded, userId } = useAuth(); // Access Clerk authentication state
 
-  const handleLearnMoreClick = () => {
-    const featuresSection = document.getElementById("features");
-    if (featuresSection) {
-      // Calculate the section's top position relative to the document
-      const topPosition = featuresSection.offsetTop;
+  React.useEffect(() => {
+    if (isLoaded && userId) {
+      // Save the signed-in state to persist across tabs/sessions
+      localStorage.setItem("signedIn", "true");
+    } else {
+      localStorage.removeItem("signedIn");
+    }
+  }, [isLoaded, userId]);
 
-      // Adjust for offset (e.g., raising the scroll target by 50px or 3rem)
-      const offset = -50; // Negative value raises the point
-      window.scrollTo({
-        top: topPosition + offset,
-        behavior: "smooth",
-      });
+  const handleRedirect = () => {
+    if (isLoaded && userId) {
+      navigate("/calendar");
     }
   };
-  
+
   return (
     <div style={{ "--hero-image": `url(${HeroImage})` }}>
       <NavBar />
       {/* CTA Bar */}
       <div className="cta-bar">
-        <SignedIn>
-          <button className="cta-button" onClick={() => navigate("/calendar")}>
-            <span className="cta-text">
-              Create Your Calendar Today
-              <FontAwesomeIcon
-                icon={faChevronRight}
-                className="cta-icon"
-                style={{ marginLeft: "10px" }}
-              />
-            </span>
-          </button>
-        </SignedIn>
         <SignedOut>
-          <SignInButton mode="modal">
+          {/* Use Clerk SignInButton with redirectUrl */}
+          <SignInButton
+            mode="modal"
+            redirectUrl="/calendar" // Redirect after successful sign-in
+            fallbackRedirectUrl="/calendar" // In case no redirectUrl is specified
+          >
             <button className="cta-button">
               <span className="cta-text">
                 Create Your Calendar Today
@@ -59,7 +53,21 @@ function HomePage() {
             </button>
           </SignInButton>
         </SignedOut>
+        <SignedIn>
+          {/* Directly redirect if signed in */}
+          <button className="cta-button" onClick={handleRedirect}>
+            <span className="cta-text">
+              Create Your Calendar Today
+              <FontAwesomeIcon
+                icon={faChevronRight}
+                className="cta-icon"
+                style={{ marginLeft: "10px" }}
+              />
+            </span>
+          </button>
+        </SignedIn>
       </div>
+
 
       {/* Hero Section */}
       <section className="hero">
@@ -70,11 +78,24 @@ function HomePage() {
               Manage your events, collaborate with friends, and take control of
               your schedule with Campus Connect.
             </p>
+            <SignedOut>
+              <SignInButton
+                mode="modal"
+                redirectUrl="/calendar" // Redirect after signing in
+                fallbackRedirectUrl="/calendar" // Ensures a fallback redirect
+              >
+                <button className="cta-button try-it-out">Try it Out!</button>
+              </SignInButton>
+            </SignedOut>
+            <SignedIn>
+              <button className="cta-button try-it-out" onClick={handleRedirect}>
+                Try it Out!
+              </button>
+            </SignedIn>
           </div>
           <div className="hero-right"></div>
         </div>
       </section>
-
 
       {/* What We Do Section */}
       <section className="what-we-do">
@@ -94,10 +115,7 @@ function HomePage() {
               With our easy-to-use platform, you can streamline your planning
               and focus on what truly matters—your success and connections.
             </p>
-            <button
-              className="learn-more-button"
-              onClick={handleLearnMoreClick}
-            >
+            <button className="learn-more-button" onClick={() => { }}>
               Learn More <FontAwesomeIcon icon={faChevronRight} />
             </button>
           </div>

@@ -40,6 +40,14 @@
         color: white;
         border-radius: 20px;
       }
+
+      // Add styles for buttons that also use .nav-link
+      &.button-link {
+        all: unset; // Reset button styles
+        display: inline-block; // Ensure it behaves like a link
+        cursor: pointer;
+        font-weight: 600;
+      }
     }
 
     /* Style for the Clerk SignInButton */

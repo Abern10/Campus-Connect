@@ -40,6 +40,10 @@ function FriendsPage() {
       };
       localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
     }
+
+    // Close the modal and show an alert
+    setIsModalOpen(false);
+    alert(`${friend.name} is now your friend!`);
   };
 
   return (
@@ -55,27 +59,30 @@ function FriendsPage() {
               onChange={(checked) => setIsGridView(checked)}
               optionLabels={["Grid", "List"]}
             />
-            <button className="add-friend-button" onClick={() => setIsModalOpen(true)}>
+            <button
+              className="add-friend-button"
+              onClick={() => setIsModalOpen(true)}
+            >
               Add Friend
             </button>
           </div>
         </div>
-        <div className={`friends-grid ${isGridView ? "grid-view" : "list-view"}`}>
+        <div
+          className={`friends-grid ${isGridView ? "grid-view" : "list-view"}`}
+        >
           {friends.map((friend) => (
             <div
               className="friend-card"
-              key={friend.id} // Set the unique id of the friend card here
-              onClick={() => {
-                console.log("Key:", friend.id); // Log the key value
-                console.log("Friend ID:", friend.id); // Log the friend.id value
-                openFriendCalendar(friend); // Pass the friend object to the calendar modal
-              }}
+              key={friend.id}
+              onClick={() => openFriendCalendar(friend)}
             >
               <div className="avatar">
                 {friend.imageUrl ? (
                   <img src={friend.imageUrl} alt={friend.name} />
                 ) : (
-                  <div className="placeholder-avatar">{friend.name.charAt(0).toUpperCase()}</div>
+                  <div className="placeholder-avatar">
+                    {friend.name.charAt(0).toUpperCase()}
+                  </div>
                 )}
               </div>
               <p className="friend-name">{friend.name}</p>
@@ -84,10 +91,7 @@ function FriendsPage() {
         </div>
       </main>
       {selectedFriend && (
-        <CalendarModal
-          friend={selectedFriend}
-          onClose={closeFriendCalendar}
-        />
+        <CalendarModal friend={selectedFriend} onClose={closeFriendCalendar} />
       )}
       {isModalOpen && (
         <AddFriendModal onClose={() => setIsModalOpen(false)} onAddFriend={addFriend} />

@@ -1,16 +1,22 @@
 import React, { useEffect } from "react";
-import { Routes, Route } from "react-router-dom";
+import { Routes, Route, useNavigate, useLocation } from "react-router-dom";
 import HomePage from "./pages/HomePage";
 import FriendsPage from "./pages/FriendsPage";
 import CalendarPage from "./pages/CalendarPage";
 import AboutUsPage from "./pages/AboutUsPage";
-
-import { initializeUserData } from "./data/initializeData";
+import { useAuth } from "@clerk/clerk-react";
 
 function App() {
+  const { isLoaded, userId } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
   useEffect(() => {
-    initializeUserData(); // Ensure data is initialized in localStorage
-  }, []);
+    // Check if the user is signed in and on the home page
+    if (isLoaded && userId && location.pathname === "/") {
+      navigate("/calendar"); // Redirect to calendar only if on home page
+    }
+  }, [isLoaded, userId, location.pathname, navigate]);
 
   return (
     <Routes>
