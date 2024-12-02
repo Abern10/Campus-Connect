@@ -46,6 +46,15 @@ function FriendsPage() {
     alert(`${friend.name} is now your friend!`);
   };
 
+  const handleRightClick = (event, friend) => {
+    event.preventDefault(); // Prevent the default context menu
+    if (window.confirm(`Delete ${friend.name} from your friends?`)) {
+      const updatedFriends = friends.filter((f) => f.id !== friend.id);
+      setFriends(updatedFriends);
+      localStorage.setItem("friends", JSON.stringify(updatedFriends));
+    }
+  };
+
   return (
     <div className="friends-page">
       <NavBar />
@@ -75,6 +84,7 @@ function FriendsPage() {
               className="friend-card"
               key={friend.id}
               onClick={() => openFriendCalendar(friend)}
+              onContextMenu={(e) => handleRightClick(e, friend)} // Right-click event listener
             >
               <div className="avatar">
                 {friend.imageUrl ? (
