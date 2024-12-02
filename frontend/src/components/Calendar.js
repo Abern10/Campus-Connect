@@ -1,5 +1,4 @@
-// src/components/Calendar.js
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -7,18 +6,10 @@ import interactionPlugin from "@fullcalendar/interaction";
 import AddEventModal from "./AddEventModal";
 import "../styles/Calendar.scss";
 
-function Calendar({ userId, isEditable = true }) {
-  const [events, setEvents] = useState([]);
+function Calendar({ userId, isEditable = true, events, onEventsChange }) {
   const [isModalOpen, setModalOpen] = useState(false);
+  const [currentView, setCurrentView] = useState("timeGridWeek");
   const calendarRef = useRef(null);
-
-  useEffect(() => {
-    // Load user events from localStorage
-    const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
-    if (allCalendars[userId]) {
-      setEvents(allCalendars[userId].events);
-    }
-  }, [userId]);
 
   const handleAddEvent = (newEvent) => {
     const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
@@ -34,16 +25,47 @@ function Calendar({ userId, isEditable = true }) {
     }
 
     localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
-    setEvents(updatedEvents);
+    onEventsChange(updatedEvents);
+  };
+
+  const handleDeleteEvent = (eventId) => {
+    const updatedEvents = events.filter((event) => event.id !== eventId);
+
+    const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
+    if (allCalendars[userId]) {
+      allCalendars[userId].events = updatedEvents;
+      localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
+    }
+
+    onEventsChange(updatedEvents);
+  };
+
+  const handleViewChange = (newView) => {
+    setCurrentView(newView);
+    const calendarApi = calendarRef.current.getApi();
+    calendarApi.changeView(newView);
   };
 
   return (
     <div className="calendar-wrapper">
       {isEditable && (
         <div className="calendar-header">
-          <button onClick={() => setModalOpen(true)} className="add-event-button">
-            Add Event
-          </button>
+          <div className="left-section">
+            <select
+              className="view-switcher"
+              value={currentView}
+              onChange={(e) => handleViewChange(e.target.value)}
+            >
+              <option value="timeGridDay">Daily</option>
+              <option value="timeGridWeek">Weekly</option>
+              <option value="dayGridMonth">Monthly</option>
+            </select>
+          </div>
+          <div className="right-section">
+            <button onClick={() => setModalOpen(true)} className="add-event-button">
+              Add Event
+            </button>
+          </div>
         </div>
       )}
 
@@ -57,24 +79,18 @@ function Calendar({ userId, isEditable = true }) {
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
-        initialView="timeGridWeek"
+        initialView={currentView}
         events={events}
         editable={isEditable}
         selectable={isEditable}
         droppable={isEditable}
         headerToolbar={false}
         eventClick={(eventClickInfo) => {
-          if (isEditable && window.confirm(`Delete event '${eventClickInfo.event.title}'?`)) {
-            const updatedEvents = events.filter(
-              (event) => event.id !== eventClickInfo.event.id
-            );
-
-            const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
-            if (allCalendars[userId]) {
-              allCalendars[userId].events = updatedEvents;
-              localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
-              setEvents(updatedEvents);
-            }
+          if (
+            isEditable &&
+            window.confirm(`Delete event '${eventClickInfo.event.title}'?`)
+          ) {
+            handleDeleteEvent(eventClickInfo.event.id);
           }
         }}
         eventContent={(eventInfo) => (

@@ -3,7 +3,7 @@ import NavBar from "../components/NavBar";
 import Footer from "../components/Footer";
 import AddFriendModal from "../components/AddFriendModal";
 import ToggleSwitch from "../components/ToggleSwitch";
-import CalendarModal from "../components/CalendarModal"; // New Component
+import CalendarModal from "../components/CalendarModal";
 import "../styles/FriendsPage.scss";
 
 function FriendsPage() {
