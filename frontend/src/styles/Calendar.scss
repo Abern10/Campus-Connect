@@ -63,10 +63,10 @@
     }
 
     .fc-event {
-        background-color: #81d4fa !important;
-        color: white !important;
         border: none !important;
         border-radius: 4px !important;
+        color: white !important;
+        /* Removed background-color to allow dynamic color */
     }
 
     .fc-day-today {
