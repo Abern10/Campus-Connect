@@ -7,15 +7,60 @@ function Sidebar({ events, onCreateGroup }) {
   const [todayEvents, setTodayEvents] = useState([]);
 
   useEffect(() => {
-    const today = new Date();
-    const todayDateString = today.toISOString().split("T")[0];
+    const updateTodayEvents = () => {
+      const today = new Date();
+      const todayDateString = today.toISOString().split("T")[0];
 
-    const filteredEvents = events.filter((event) =>
-      event.start.startsWith(todayDateString)
-    );
+      // Include all events that overlap with today (start or span into today)
+      const filteredEvents = events.filter((event) => {
+        const eventDate = new Date(event.start).toISOString().split("T")[0];
+        return eventDate === todayDateString;
+      });
 
-    setTodayEvents(filteredEvents);
+      // Sort events by start time
+      const sortedEvents = filteredEvents.sort(
+        (a, b) => new Date(a.start) - new Date(b.start)
+      );
+
+      setTodayEvents(sortedEvents);
+    };
+
+    updateTodayEvents();
   }, [events]);
+
+  const handleMouseEnter = (info) => {
+    const tooltip = document.createElement("div");
+    tooltip.innerText = `${info.event.title} \n ${new Date(
+      info.event.start
+    ).toLocaleTimeString([], {
+      hour: "2-digit",
+      minute: "2-digit",
+    })}`;
+    tooltip.style.position = "absolute";
+    tooltip.style.background = "white";
+    tooltip.style.padding = "5px";
+    tooltip.style.border = "1px solid #ccc";
+    tooltip.style.boxShadow = "0px 4px 10px rgba(0, 0, 0, 0.1)";
+    tooltip.style.zIndex = "1000";
+    tooltip.className = "mini-calendar-tooltip";
+    document.body.appendChild(tooltip);
+
+    const moveTooltip = (event) => {
+      tooltip.style.left = `${event.pageX + 10}px`;
+      tooltip.style.top = `${event.pageY + 10}px`;
+    };
+
+    const removeTooltip = () => {
+      if (tooltip.parentNode) {
+        document.body.removeChild(tooltip);
+      }
+      info.el.removeEventListener("mousemove", moveTooltip);
+      info.el.removeEventListener("mouseleave", removeTooltip);
+    };
+
+    info.el.addEventListener("mousemove", moveTooltip);
+    info.el.addEventListener("mouseleave", removeTooltip);
+  };
 
   return (
     <div className="sidebar">
@@ -27,21 +72,11 @@ function Sidebar({ events, onCreateGroup }) {
           initialView="dayGridMonth"
           headerToolbar={false} // Hide the header
           height="300px"
-          events={events}
-          eventContent={(eventInfo) => (
-            <span
-              title={eventInfo.event.title}
-              style={{
-                backgroundColor: eventInfo.event.backgroundColor,
-                color: "#fff",
-                borderRadius: "4px",
-                padding: "0 2px",
-                fontSize: "10px",
-              }}
-            >
-              {eventInfo.timeText}
-            </span>
-          )}
+          events={events.map((event) => ({
+            ...event,
+            backgroundColor: event.backgroundColor, // Use event color
+          }))}
+          eventMouseEnter={handleMouseEnter}
         />
       </div>
 
@@ -66,11 +101,6 @@ function Sidebar({ events, onCreateGroup }) {
           <p>No events today.</p>
         )}
       </div>
-
-      {/* Create Group Button */}
-      <button className="create-group-button" onClick={onCreateGroup}>
-        Create Group
-      </button>
     </div>
   );
 }
