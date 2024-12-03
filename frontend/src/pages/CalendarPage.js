@@ -20,17 +20,12 @@ function CalendarPage() {
     setEvents(updatedEvents);
   };
 
-  const handleCreateGroup = () => {
-    alert("Group creation functionality coming soon!");
-  };
-
   return (
     <div className="calendar-page">
       <NavBar />
       <div className="calendar-content">
         <Sidebar
           events={events}
-          onCreateGroup={handleCreateGroup}
           onEventsChange={handleEventsChange}
         />
         <div className="calendar-wrapper">

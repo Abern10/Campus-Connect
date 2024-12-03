@@ -1,4 +1,4 @@
-import React, { useState, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
@@ -6,11 +6,21 @@ import interactionPlugin from "@fullcalendar/interaction";
 import AddEventModal from "./AddEventModal";
 import "../styles/Calendar.scss";
 
-function Calendar({ userId, isEditable = true, events, onEventsChange }) {
+function Calendar({ userId, isEditable = true, onEventsChange }) {
+  const [events, setEvents] = useState([]);
   const [isModalOpen, setModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState("timeGridWeek");
   const calendarRef = useRef(null);
 
+  // Load events from localStorage when the component mounts
+  useEffect(() => {
+    const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
+    if (allCalendars[userId]) {
+      setEvents(allCalendars[userId].events);
+    }
+  }, [userId]);
+
+  // Add a new event to the calendar
   const handleAddEvent = (newEvent) => {
     const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
     const updatedEvents = [
@@ -25,21 +35,15 @@ function Calendar({ userId, isEditable = true, events, onEventsChange }) {
     }
 
     localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
-    onEventsChange(updatedEvents);
-  };
+    setEvents(updatedEvents);
 
-  const handleDeleteEvent = (eventId) => {
-    const updatedEvents = events.filter((event) => event.id !== eventId);
-
-    const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
-    if (allCalendars[userId]) {
-      allCalendars[userId].events = updatedEvents;
-      localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
+    // Notify parent component (if provided) of the new events
+    if (onEventsChange) {
+      onEventsChange(updatedEvents);
     }
-
-    onEventsChange(updatedEvents);
   };
 
+  // Change the calendar view (e.g., daily, weekly, monthly)
   const handleViewChange = (newView) => {
     setCurrentView(newView);
     const calendarApi = calendarRef.current.getApi();
@@ -86,11 +90,22 @@ function Calendar({ userId, isEditable = true, events, onEventsChange }) {
         droppable={isEditable}
         headerToolbar={false}
         eventClick={(eventClickInfo) => {
-          if (
-            isEditable &&
-            window.confirm(`Delete event '${eventClickInfo.event.title}'?`)
-          ) {
-            handleDeleteEvent(eventClickInfo.event.id);
+          if (isEditable && window.confirm(`Delete event '${eventClickInfo.event.title}'?`)) {
+            const updatedEvents = events.filter(
+              (event) => event.id !== eventClickInfo.event.id
+            );
+
+            const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
+            if (allCalendars[userId]) {
+              allCalendars[userId].events = updatedEvents;
+              localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
+              setEvents(updatedEvents);
+
+              // Notify parent component (if provided) of the updated events
+              if (onEventsChange) {
+                onEventsChange(updatedEvents);
+              }
+            }
           }
         }}
         eventContent={(eventInfo) => (
