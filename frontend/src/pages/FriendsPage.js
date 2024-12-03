@@ -43,6 +43,26 @@ function FriendsPage() {
     alert(`${friend.name} is now your friend!`);
   };
 
+  const handleJoinCalendars = (friendId, color) => {
+    const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
+    const userCalendar = allCalendars["currentUserId"]?.events || [];
+    const friendCalendar = allCalendars[friendId]?.events || [];
+
+    const updatedCalendar = [
+      ...userCalendar,
+      ...friendCalendar.map((event) => ({
+        ...event,
+        id: `${friendId}-${event.id}`, // Ensure unique IDs
+        title: `${event.title} (From ${friends.find((f) => f.id === friendId)?.name})`, // Add friend's name
+        backgroundColor: color, // Use the selected color
+      })),
+    ];
+
+    allCalendars["currentUserId"] = { events: updatedCalendar };
+    localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
+    alert("Calendars successfully joined!");
+  };
+
   const handleRightClick = (event, friend) => {
     event.preventDefault();
     if (window.confirm(`Delete ${friend.name} from your friends?`)) {
@@ -103,7 +123,11 @@ function FriendsPage() {
         </div>
       </main>
       {selectedFriend && (
-        <CalendarModal friend={selectedFriend} onClose={closeFriendCalendar} />
+        <CalendarModal
+          friend={selectedFriend}
+          onClose={closeFriendCalendar}
+          onJoinCalendars={handleJoinCalendars} // Pass the join calendars handler
+        />
       )}
       {isModalOpen && (
         <AddFriendModal

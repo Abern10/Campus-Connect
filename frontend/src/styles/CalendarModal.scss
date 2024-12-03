@@ -18,62 +18,93 @@
   width: 90%;
   max-width: 700px;
   box-shadow: 0 4px 10px rgba(0, 0, 0, 0.25);
+}
 
-  .modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
+.modal-header {
+  display: flex;
+  justify-content: center; /* Center the modal title */
+  align-items: center;
+  margin-bottom: 1rem;
 
-    h2 {
-      font-size: 1.5rem;
-      color: #333;
-    }
+  h2 {
+    font-size: 1.5rem;
+    color: #333;
+  }
+}
 
-    .close-button {
-      background: none;
-      border: none;
-      font-size: 1.5rem;
-      cursor: pointer;
+.calendar-view-switcher {
+  display: flex;
+  justify-content: flex-start;
+  margin: 1rem 0;
+
+  label {
+    margin-right: 0.5rem;
+    font-size: 1rem;
+    font-weight: bold;
+  }
+
+  select {
+    padding: 0.5rem;
+    font-size: 1rem;
+    border-radius: 8px;
+    border: 1px solid #ccc;
+  }
+}
+
+.modal-footer {
+  display: flex;
+  justify-content: space-between; /* Place buttons on opposite sides */
+  margin-top: 1.5rem;
+
+  .close-modal-button {
+    background-color: #e0e0e0;
+    color: #333;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: #d6d6d6;
     }
   }
 
-  .calendar-container {
+  .join-calendars-button {
+    background-color: #81d4fa;
+    color: white;
+    border: none;
+    padding: 0.8rem 1.5rem;
+    border-radius: 8px;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+
+    &:hover {
+      background-color: #6ec6f3;
+    }
+  }
+
+  .color-picker {
+    display: flex;
+    align-items: center;
     margin: 1rem 0;
-  }
-
-  .modal-footer {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-
-    .join-calendars-button {
-      background-color: #81d4fa;
-      color: white;
-      border: none;
-      padding: 0.8rem 1.5rem;
-      border-radius: 8px;
+  
+    label {
       font-size: 1rem;
-      font-weight: 600;
-      cursor: pointer;
-      &:hover {
-        background-color: #6ec6f3;
-      }
+      font-weight: bold;
+      margin-right: 0.5rem;
     }
-    
-    .close-modal-button {
-      background-color: #ddd;
-      color: #333;
+  
+    input[type="color"] {
+      width: 40px;
+      height: 40px;
       border: none;
-      padding: 0.8rem 1.5rem;
-      border-radius: 8px;
-      font-size: 1rem;
-      font-weight: 600;
+      border-radius: 4px;
       cursor: pointer;
-    
-      &:hover {
-        background-color: #bbb;
-      }
     }
   }
 }

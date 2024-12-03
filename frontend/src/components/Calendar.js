@@ -3,83 +3,39 @@ import FullCalendar from "@fullcalendar/react";
 import dayGridPlugin from "@fullcalendar/daygrid";
 import timeGridPlugin from "@fullcalendar/timegrid";
 import interactionPlugin from "@fullcalendar/interaction";
-import AddEventModal from "./AddEventModal";
 import "../styles/Calendar.scss";
 
-function Calendar({ userId, isEditable = true, onEventsChange }) {
+function Calendar({ userId, isEditable = true, currentView = "timeGridWeek", events: propEvents }) {
   const [events, setEvents] = useState([]);
-  const [isModalOpen, setModalOpen] = useState(false);
-  const [currentView, setCurrentView] = useState("timeGridWeek");
   const calendarRef = useRef(null);
 
-  // Load events from localStorage when the component mounts
+  // Load events for the given user
   useEffect(() => {
-    const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
-    if (allCalendars[userId]) {
-      setEvents(allCalendars[userId].events);
-    }
-  }, [userId]);
-
-  // Add a new event to the calendar
-  const handleAddEvent = (newEvent) => {
-    const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
-    const updatedEvents = [
-      ...events,
-      { ...newEvent, id: Date.now().toString(), backgroundColor: newEvent.color },
-    ];
-
-    if (!allCalendars[userId]) {
-      allCalendars[userId] = { events: updatedEvents };
+    if (propEvents && propEvents.length > 0) {
+      setEvents(propEvents);
     } else {
-      allCalendars[userId].events = updatedEvents;
+      const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
+      if (allCalendars[userId]) {
+        setEvents(allCalendars[userId].events);
+      }
     }
+  }, [userId, propEvents]);
 
-    localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
-    setEvents(updatedEvents);
+  const handleEventClick = (info) => {
+    if (isEditable && window.confirm(`Delete event '${info.event.title}'?`)) {
+      const updatedEvents = events.filter((event) => event.id !== info.event.id);
+      setEvents(updatedEvents);
 
-    // Notify parent component (if provided) of the new events
-    if (onEventsChange) {
-      onEventsChange(updatedEvents);
+      const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
+      if (allCalendars[userId]) {
+        allCalendars[userId].events = updatedEvents;
+        localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
+      }
     }
-  };
-
-  // Change the calendar view (e.g., daily, weekly, monthly)
-  const handleViewChange = (newView) => {
-    setCurrentView(newView);
-    const calendarApi = calendarRef.current.getApi();
-    calendarApi.changeView(newView);
   };
 
   return (
     <div className="calendar-wrapper">
-      {isEditable && (
-        <div className="calendar-header">
-          <div className="left-section">
-            <select
-              className="view-switcher"
-              value={currentView}
-              onChange={(e) => handleViewChange(e.target.value)}
-            >
-              <option value="timeGridDay">Daily</option>
-              <option value="timeGridWeek">Weekly</option>
-              <option value="dayGridMonth">Monthly</option>
-            </select>
-          </div>
-          <div className="right-section">
-            <button onClick={() => setModalOpen(true)} className="add-event-button">
-              Add Event
-            </button>
-          </div>
-        </div>
-      )}
-
-      {isModalOpen && (
-        <AddEventModal
-          onClose={() => setModalOpen(false)}
-          onSave={handleAddEvent}
-        />
-      )}
-
       <FullCalendar
         ref={calendarRef}
         plugins={[dayGridPlugin, timeGridPlugin, interactionPlugin]}
@@ -88,32 +44,12 @@ function Calendar({ userId, isEditable = true, onEventsChange }) {
         editable={isEditable}
         selectable={isEditable}
         droppable={isEditable}
-        headerToolbar={false}
-        eventClick={(eventClickInfo) => {
-          if (isEditable && window.confirm(`Delete event '${eventClickInfo.event.title}'?`)) {
-            const updatedEvents = events.filter(
-              (event) => event.id !== eventClickInfo.event.id
-            );
-
-            const allCalendars = JSON.parse(localStorage.getItem("all-calendars")) || {};
-            if (allCalendars[userId]) {
-              allCalendars[userId].events = updatedEvents;
-              localStorage.setItem("all-calendars", JSON.stringify(allCalendars));
-              setEvents(updatedEvents);
-
-              // Notify parent component (if provided) of the updated events
-              if (onEventsChange) {
-                onEventsChange(updatedEvents);
-              }
-            }
-          }
-        }}
-        eventContent={(eventInfo) => (
-          <div style={{ backgroundColor: eventInfo.event.backgroundColor }}>
-            <b>{eventInfo.timeText}</b>
-            <i>{eventInfo.event.title}</i>
-          </div>
-        )}
+        headerToolbar={{
+          left: "prev,next today",
+          center: "title",
+          right: "dayGridMonth,timeGridWeek,timeGridDay",
+        }} // Toolbar for switching views
+        eventClick={handleEventClick}
       />
     </div>
   );
